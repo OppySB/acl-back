@@ -4,12 +4,13 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ApiResource()
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\MemberRepository")
  */
-class User
+class Member implements UserInterface, \Serializable
 {
     /**
      * @ORM\Id()
@@ -29,9 +30,9 @@ class User
     private $lastname;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", unique=true)
      */
-    private $login;
+    private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -44,9 +45,21 @@ class User
     private $dateCreation;
 
     /**
+     * @ORM\Column(type="string", unique=true, nullable=true)
+     */
+    private $apiKey;
+
+
+
+    /**
      * @ORM\Column(type="datetime")
      */
     private $dateLastInscription;
+
+    public function getRoles()
+    {
+        return array('ROLE_USER');
+    }
 
     public function getId(): ?int
     {
@@ -73,18 +86,6 @@ class User
     public function setLastname(string $lastname): self
     {
         $this->lastname = $lastname;
-
-        return $this;
-    }
-
-    public function getLogin(): ?string
-    {
-        return $this->login;
-    }
-
-    public function setLogin(string $login): self
-    {
-        $this->login = $login;
 
         return $this;
     }
@@ -122,6 +123,78 @@ class User
     {
         $this->dateLastInscription = $dateLastInscription;
 
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getApiKey()
+    {
+        return $this->apiKey;
+    }
+
+    /**
+     * @param mixed $apiKey
+     * @return Member
+     */
+    public function setApiKey($apiKey)
+    {
+        $this->apiKey = $apiKey;
+        return $this;
+    }
+
+
+    public function getSalt()
+    {
+        // you *may* need a real salt depending on your encoder
+        // see section on salt below
+        return null;
+    }
+
+    public function eraseCredentials()
+    {
+    }
+
+    /** @see \Serializable::serialize() */
+    public function serialize()
+    {
+        return serialize(array(
+            $this->id,
+            $this->username,
+            $this->password,
+            // see section on salt below
+            // $this->salt,
+        ));
+    }
+
+    /** @see \Serializable::unserialize() */
+    public function unserialize($serialized)
+    {
+        list (
+            $this->id,
+            $this->username,
+            $this->password,
+            // see section on salt below
+            // $this->salt
+            ) = unserialize($serialized, array('allowed_classes' => false));
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @param mixed $username
+     * @return Member
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
         return $this;
     }
 }
